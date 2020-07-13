@@ -993,19 +993,29 @@ class Workbook(xmlwriter.XMLwriter):
             # 2. If the user specifies a foreground or background color
             # without a pattern they probably wanted a solid fill, so we fill
             # in the defaults.
-            if (xf_format.pattern == 1 and xf_format.bg_color != 0
+            pattern = xf_format.pattern
+            if not isinstance(pattern, int):
+                if pattern == "none":
+                    pattern = 0
+                elif pattern == "solid":
+                    pattern = 1
+                else:
+                    pattern = 2
+
+            if (not isinstance(xf_format.fg_color, dict) and not isinstance(xf_format.bg_color, dict)
+                    and pattern == 1 and xf_format.bg_color != 0
                     and xf_format.fg_color != 0):
                 tmp = xf_format.fg_color
                 xf_format.fg_color = xf_format.bg_color
                 xf_format.bg_color = tmp
 
-            if (xf_format.pattern <= 1 and xf_format.bg_color != 0
+            if (pattern <= 1 and xf_format.bg_color != 0
                     and xf_format.fg_color == 0):
                 xf_format.fg_color = xf_format.bg_color
                 xf_format.bg_color = 0
                 xf_format.pattern = 1
 
-            if (xf_format.pattern <= 1 and xf_format.bg_color == 0
+            if (pattern <= 1 and xf_format.bg_color == 0
                     and xf_format.fg_color != 0):
                 xf_format.bg_color = 0
                 xf_format.pattern = 1

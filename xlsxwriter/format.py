@@ -960,27 +960,29 @@ class Format(xmlwriter.XMLwriter):
         # Used in conjunction with the set_xxx_color methods to convert a
         # color name into an RGB formatted string. These colors are for
         # backward compatibility with older versions of Excel.
-        named_colors = {
-            'black': '#000000',
-            'blue': '#0000FF',
-            'brown': '#800000',
-            'cyan': '#00FFFF',
-            'gray': '#808080',
-            'green': '#008000',
-            'lime': '#00FF00',
-            'magenta': '#FF00FF',
-            'navy': '#000080',
-            'orange': '#FF6600',
-            'pink': '#FF00FF',
-            'purple': '#800080',
-            'red': '#FF0000',
-            'silver': '#C0C0C0',
-            'white': '#FFFFFF',
-            'yellow': '#FFFF00',
-        }
 
-        if color in named_colors:
-            color = named_colors[color]
+        if not isinstance(color, dict):
+            named_colors = {
+                'black': '#000000',
+                'blue': '#0000FF',
+                'brown': '#800000',
+                'cyan': '#00FFFF',
+                'gray': '#808080',
+                'green': '#008000',
+                'lime': '#00FF00',
+                'magenta': '#FF00FF',
+                'navy': '#000080',
+                'orange': '#FF6600',
+                'pink': '#FF00FF',
+                'purple': '#800080',
+                'red': '#FF0000',
+                'silver': '#C0C0C0',
+                'white': '#FFFFFF',
+                'yellow': '#FFFF00',
+            }
+
+            if color in named_colors:
+                color = named_colors[color]
 
         return color
 

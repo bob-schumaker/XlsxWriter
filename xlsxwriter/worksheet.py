@@ -5030,8 +5030,8 @@ class Worksheet(xmlwriter.XMLwriter):
         elif xf_format.color_indexed:
             self._write_color('indexed', xf_format.color_indexed)
         elif xf_format.font_color:
-            color = self._get_palette_color(xf_format.font_color)
-            self._write_rstring_color('rgb', color)
+            color = self._get_color_attributes(xf_format.font_color)
+            self.rstring._xml_empty_tag('color', color)
         else:
             self._write_rstring_color('theme', 1)
 
@@ -5076,7 +5076,15 @@ class Worksheet(xmlwriter.XMLwriter):
         if color[0] == '#':
             color = color[1:]
 
-        return "FF" + color.upper()
+        if len(color) < 8:
+            color = "FF" + color
+        return color.upper()
+
+    def _get_color_attributes(self, color):
+        # Handle complex colors
+        if isinstance(color, str_types):
+            return [('rgb', self._get_palette_color(color))]
+        return [(key, value) for key, value in color.items()]
 
     def _opt_close(self):
         # Close the row data filehandle in constant_memory mode.

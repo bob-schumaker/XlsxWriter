@@ -7,6 +7,7 @@
 
 # Package imports.
 from . import xmlwriter
+from .compatibility import str_types
 
 
 class Styles(xmlwriter.XMLwriter):
@@ -111,7 +112,15 @@ class Styles(xmlwriter.XMLwriter):
         if color[0] == '#':
             color = color[1:]
 
-        return "FF" + color.upper()
+        if len(color) < 8:
+            color = "FF" + color
+        return color.upper()
+
+    def _get_color_attributes(self, color):
+        # Handle complex colors
+        if isinstance(color, str_types):
+            return [('rgb', self._get_palette_color(color))]
+        return [(key, value) for key, value in color.items()]
 
     ###########################################################################
     #
@@ -264,8 +273,8 @@ class Styles(xmlwriter.XMLwriter):
         elif xf_format.color_indexed:
             self._write_color('indexed', xf_format.color_indexed)
         elif xf_format.font_color:
-            color = self._get_palette_color(xf_format.font_color)
-            self._write_color('rgb', color)
+            color = self._get_color_attributes(xf_format.font_color)
+            self._xml_empty_tag('color', color)
         elif not is_dxf_format:
             self._write_color('theme', 1)
 
@@ -387,23 +396,30 @@ class Styles(xmlwriter.XMLwriter):
             'gray0625',
         )
 
+
+        if isinstance(pattern, int):
+            is_none = pattern <= 1
+            pattern = patterns[pattern]
+        else:
+            is_none = pattern == "none" or pattern == "solid"
+
         self._xml_start_tag('fill')
 
         # The "none" pattern is handled differently for dxf formats.
-        if is_dxf_format and pattern <= 1:
+        if is_dxf_format and is_none:
             self._xml_start_tag('patternFill')
         else:
             self._xml_start_tag(
                 'patternFill',
-                [('patternType', patterns[pattern])])
+                [('patternType', pattern)])
 
         if fg_color:
-            fg_color = self._get_palette_color(fg_color)
-            self._xml_empty_tag('fgColor', [('rgb', fg_color)])
+            fg_color = self._get_color_attributes(fg_color)
+            self._xml_empty_tag('fgColor', fg_color)
 
         if bg_color:
-            bg_color = self._get_palette_color(bg_color)
-            self._xml_empty_tag('bgColor', [('rgb', bg_color)])
+            bg_color = self._get_color_attributes(bg_color)
+            self._xml_empty_tag('bgColor', bg_color)
         else:
             if not is_dxf_format:
                 self._xml_empty_tag('bgColor', [('indexed', 64)])
@@ -503,13 +519,15 @@ class Styles(xmlwriter.XMLwriter):
             'slantDashDot',
         )
 
-        attributes.append(('style', border_styles[style]))
+        if isinstance(style, int):
+            style = border_styles[style]
+        attributes.append(('style', style))
 
         self._xml_start_tag(border_type, attributes)
 
         if color:
-            color = self._get_palette_color(color)
-            self._xml_empty_tag('color', [('rgb', color)])
+            color = self._get_color_attributes(color)
+            self._xml_empty_tag('color', color)
         else:
             self._xml_empty_tag('color', [('auto', 1)])
 
